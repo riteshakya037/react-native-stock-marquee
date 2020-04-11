@@ -11,6 +11,8 @@ class StockMarquee extends Component {
     super(props);
     this.state = {
       currentPosition: 0,
+      scrolling: false,
+      momentumScrolling: false,
     };
   }
 
@@ -42,6 +44,13 @@ class StockMarquee extends Component {
     this.activeInterval = setInterval(this.scrolling, 32);
   }
 
+  clearScrolling() {
+    if (this.activeInterval) {
+      clearInterval(this.activeInterval);
+      this.activeInterval = null;
+    }
+  }
+
   scrolling = () => {
     // Start scrolling if there's more than one stock to display
     const {data} = this.props;
@@ -66,6 +75,50 @@ class StockMarquee extends Component {
       } else {
         this.setState({currentPosition: position});
       }
+    }
+  };
+
+  onMomentumScrollBegin = () => {
+    this.setState({
+      momentumScrolling: true,
+    });
+    this.clearScrolling();
+  };
+
+  onMomentumScrollEnd = (event) => {
+    const {momentumScrolling} = this.state;
+    if (momentumScrolling) {
+      this.setState({
+        momentumScrolling: false,
+        currentPosition: event.nativeEvent.contentOffset.x,
+      });
+      this.startScroll();
+    }
+  };
+
+  onScrollBegin = () => {
+    this.setState({
+      scrolling: true,
+    });
+    this.clearScrolling();
+  };
+
+  onScrollEnd = (event) => {
+    this.setState({
+      scrolling: false,
+      currentPosition: event.nativeEvent.contentOffset.x,
+    });
+    this.startScroll();
+  };
+
+  onTouchBegin = () => {
+    this.clearScrolling();
+  };
+
+  onTouchEnd = () => {
+    const {scrolling} = this.state;
+    if (!scrolling) {
+      this.startScroll();
     }
   };
 
@@ -95,6 +148,13 @@ class StockMarquee extends Component {
         ref={(ref) => {
           this.ticker = ref;
         }}
+        decelerationRate="fast"
+        onTouchStart={this.onTouchBegin}
+        onTouchEnd={this.onTouchEnd}
+        onScrollBeginDrag={this.onScrollBegin}
+        onScrollEndDrag={this.onScrollEnd}
+        onMomentumScrollBegin={this.onMomentumScrollBegin}
+        onMomentumScrollEnd={this.onMomentumScrollEnd}
         getItemLayout={(_, index) => ({
           length: data.length,
           offset: itemWidth * index,
