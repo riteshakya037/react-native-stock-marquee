@@ -8,13 +8,31 @@
 
 import React from 'react';
 import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
+import StockMarquee from './src/components/StockMarquee';
+
+const data = [
+  'AAPL',
+  'GOOGL',
+  'GOOG',
+  'MSFT',
+  'FB',
+  'TSM',
+  'INTC',
+  'ORCL',
+  'CSCO',
+].map((item) => ({
+  title: item,
+  price: parseInt((Math.random() * 1000).toFixed(2), 10),
+  change: parseInt((Math.random() * 100).toFixed(2), 10),
+  isGain: Math.floor(Math.random() * 10).toFixed(2) > 5,
+}));
 
 const App: () => React$Node = () => {
   return (
     <>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.background}>
-        // Component goes here
+        <StockMarquee data={data} />
       </SafeAreaView>
     </>
   );
