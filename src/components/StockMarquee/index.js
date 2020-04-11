@@ -45,16 +45,19 @@ class StockMarquee extends Component {
   scrolling = () => {
     // Start scrolling if there's more than one stock to display
     const {data} = this.props;
-    const {currentPosition} = this.state;
-
-    if (data.length > NO_PER_SCREEN) {
+    let {currentPosition} = this.state;
+    if (currentPosition < 0) {
+      currentPosition = 0;
+    }
+    if (data.length > 5) {
       // Increment position with each new interval
       const position = currentPosition + 0.5;
       this.ticker.scrollToOffset({offset: position, animated: false});
+      // After position passes this value, snaps back to beginning
       const maxOffset = data.length * itemWidth;
       // Set animation to repeat at end of scroll
       if (currentPosition > maxOffset) {
-        const offset = 0;
+        const offset = currentPosition - maxOffset;
         this.ticker.scrollToOffset({
           offset,
           animated: false,
@@ -66,10 +69,29 @@ class StockMarquee extends Component {
     }
   };
 
-  render() {
+  getWrappedData = () => {
     const {data} = this.props;
+    const overlappingNo = this.getOverlappingNo();
+    return {
+      data: [...data, ...data.slice(0, overlappingNo)],
+    };
+  };
+
+  getOverlappingNo = () => {
+    const {data} = this.props;
+    const {length} = data;
+    let overlappingNo = 10;
+    if (length < 10) {
+      overlappingNo = length;
+    }
+    return overlappingNo;
+  };
+
+  render() {
+    const {data} = this.getWrappedData();
     return (
       <FlatList
+        initialNumToRender={4}
         ref={(ref) => {
           this.ticker = ref;
         }}
